@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  GREEN LIMELIGHT — DESIGN SYSTEM NOTES
+  ---------------------------------------
+  Surface:
+    surface (#0f172a / slate-900)  — page background
+    surface-raised (#1e293b / slate-800) — glass card base, blurred
+
+  Accents (Tailwind built-ins, used directly in components):
+    emerald-400 / emerald-500  — primary accent, icons, active states
+    lime-300 / lime-400        — secondary "electric" highlights, glows
+    limelight-* (tailwind.config.js) — gradient stops between the two
+
+  Type:
+    Space Grotesk — display/headings
+    Inter         — body copy & UI labels
+    JetBrains Mono— numeric stats (CO2 totals, streak counts, points)
+
+  Glassmorphism: `.glass` gives translucent slate panels with blur,
+  a faint top inner highlight, and a hairline border — combine with
+  `shadow-glow` / `shadow-glow-lime` for the "limelight" halo.
+*/
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0f172a;
+  /* Soft ambient glow in the corners — keeps the dark theme from
+     feeling flat without competing with card-level glows. */
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(34, 224, 143, 0.10), transparent 40%),
+    radial-gradient(circle at 85% 100%, rgba(163, 230, 53, 0.08), transparent 40%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Glass panel: translucent dark surface + blur + hairline border. */
+.glass {
+  background-color: rgba(30, 41, 59, 0.55); /* surface-raised @ 55% */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Visible keyboard focus ring across the app, regardless of element. */
+:focus-visible {
+  outline: 2px solid #4ade80; /* emerald-400 */
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,51 @@
+# render.yaml
+# ------------
+# Render Blueprint — defines both services in one file.
+# Connect your GitHub repo to Render and it will detect this automatically.
+#
+# Services:
+#   1. canopy-ai-server  — Express proxy for Groq AI tips (Web Service)
+#   2. canopy-frontend   — Vite React app (Static Site)
+
+services:
+  # -----------------------------------------------------------------------
+  # 1. EXPRESS AI PROXY (Web Service)
+  #    Handles POST /api/eco-tip — keeps GROQ_API_KEY off the browser.
+  # -----------------------------------------------------------------------
+  - type: web
+    name: canopy-ai-server
+    runtime: node
+    rootDir: .
+    buildCommand: npm install
+    startCommand: node server/index.js
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false          # You fill this in manually in the Render dashboard
+      - key: FRONTEND_URL
+        sync: false          # Set to your Static Site URL after it's deployed
+      - key: PORT
+        value: 3001
+    healthCheckPath: /health
+
+  # -----------------------------------------------------------------------
+  # 2. VITE REACT FRONTEND (Static Site)
+  #    Builds with `npm run build` and serves from dist/.
+  # -----------------------------------------------------------------------
+  - type: web
+    name: canopy-frontend
+    runtime: static
+    rootDir: .
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      # Send all routes to index.html so React Router handles them client-side.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_SUPABASE_URL
+        sync: false          # Your Supabase project URL
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false          # Your Supabase anon key
+      - key: VITE_API_URL
+        sync: false          # Set to your Web Service URL after it's deployed
