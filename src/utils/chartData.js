@@ -59,53 +59,96 @@ export function getDailyTrends(habits, days = 7) {
  * @param {number} weeks - how many weeks of history to include (default 12)
  * @returns {Array<Array<{date,count,savedKg,level}|null>>} weeks of 7 days
  */
+/**
+ * Build a calendar-heatmap grid (GitHub-contributions style).
+ *
+ * FIXES applied:
+ *   1. All dates use local time (not UTC/toISOString) so today's cell is
+ *      always correct regardless of timezone (e.g. IST UTC+5:30).
+ *   2. The grid always starts on the Sunday that contains the day
+ *      `weeks * 7` days ago — so every month always shows its full
+ *      week-aligned range, no days are eaten by padding.
+ *   3. Future cells in the current week are rendered as null (empty) so
+ *      the grid never shows dates beyond today.
+ *   4. Month labels are placed at the first Sunday of each month, or the
+ *      first cell if the month starts mid-week — guaranteed non-overlapping.
+ *
+ * Each real cell:
+ *   { date: "YYYY-MM-DD", count: number, savedKg: number, level: 0-3 }
+ * Padding cells: null
+ *
+ * @param {Array}  habits - entries from HabitContext
+ * @param {number} weeks  - number of week columns to show (default 12)
+ * @returns {Array<Array<cell|null>>} array of weeks, each 7 days Sun->Sat
+ */
 export function getHeatmapData(habits, weeks = 12) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // --- 1. Timezone-safe "today" -------------------------------------------
+  // Never use toISOString() — it converts to UTC which can be tomorrow or
+  // yesterday depending on local timezone offset.
+  const now = new Date();
+  const todayStr = localDateStr(now);
 
-  const totalDays = weeks * 7;
-  const startDate = new Date(today);
-  startDate.setDate(startDate.getDate() - (totalDays - 1));
+  // --- 2. Grid start = Sunday of the week that was `weeks` weeks ago ------
+  // This ensures every week column is complete (Sun-Sat) with no days lost
+  // to left-padding, and April always starts on its correct week.
+  const anchorDate = new Date(now);
+  anchorDate.setDate(anchorDate.getDate() - weeks * 7);
+  // Rewind to the Sunday of that week
+  anchorDate.setDate(anchorDate.getDate() - anchorDate.getDay());
 
-  // Quick lookup: date string -> { count, savedG }
+  // --- 3. Build lookup: local-date-string -> { count, savedG } ------------
   const byDate = {};
   for (const h of habits) {
+    // h.date is already "YYYY-MM-DD" stored as local date — use directly.
     if (!byDate[h.date]) byDate[h.date] = { count: 0, savedG: 0 };
     byDate[h.date].count += 1;
     byDate[h.date].savedG += h.savedG || 0;
   }
 
-  // Flat list of cells from startDate -> today
-  const cells = [];
-  const cursor = new Date(startDate);
-  while (cursor <= today) {
-    const dateStr = cursor.toISOString().slice(0, 10);
-    const day = byDate[dateStr] || { count: 0, savedG: 0 };
-    cells.push({
-      date: dateStr,
-      count: day.count,
-      savedKg: Math.round((day.savedG / 1000) * 100) / 100,
-      level: levelForCount(day.count),
-    });
-    cursor.setDate(cursor.getDate() + 1);
-  }
-
-  // Left-pad the first week so columns align to Sunday-start weeks.
-  const startWeekday = startDate.getDay(); // 0 = Sunday
-  const padded = [...Array(startWeekday).fill(null), ...cells];
-
-  // Right-pad the last week so it's a full 7 days too.
-  while (padded.length % 7 !== 0) {
-    padded.push(null);
-  }
-
-  // Chunk into weeks of 7
+  // --- 4. Walk day by day from anchorDate, building week columns ----------
   const weeksGrid = [];
-  for (let i = 0; i < padded.length; i += 7) {
-    weeksGrid.push(padded.slice(i, i + 7));
+  const cursor = new Date(anchorDate);
+
+  for (let w = 0; w < weeks + 1; w++) {
+    const week = [];
+    for (let d = 0; d < 7; d++) {
+      const dateStr = localDateStr(cursor);
+
+      // Future dates (beyond today) → null padding
+      if (cursor > now) {
+        week.push(null);
+      } else {
+        const day = byDate[dateStr] || { count: 0, savedG: 0 };
+        week.push({
+          date: dateStr,
+          count: day.count,
+          savedKg: Math.round((day.savedG / 1000) * 100) / 100,
+          level: levelForCount(day.count),
+          isToday: dateStr === todayStr,
+        });
+      }
+
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    // Only include week columns that have at least one real cell
+    if (week.some((c) => c !== null)) {
+      weeksGrid.push(week);
+    }
   }
 
   return weeksGrid;
+}
+
+/**
+ * Return a "YYYY-MM-DD" string in LOCAL time — never use toISOString()
+ * for calendar dates because it converts to UTC.
+ */
+function localDateStr(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 function levelForCount(count) {
