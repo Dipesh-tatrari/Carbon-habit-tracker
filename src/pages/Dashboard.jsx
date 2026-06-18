@@ -9,6 +9,7 @@
  *   - Today's logged habits, each with a lucide icon.
  */
 
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { TrendingDown, Flame, ListChecks, ArrowRight, TrendingUp } from "lucide-react";
@@ -38,12 +39,15 @@ const cardVariants = {
 
 export default function Dashboard() {
   const { habits, points, streak, todaysHabits } = useHabitStore();
-  const totalSaved = getTotalCarbonSaved(habits);
-  const percent = Math.min(totalSaved / GOAL_G, 1);
-  const { next, progress, currentIndex } = getLevel(points);
+  
+  const totalSaved = useMemo(() => getTotalCarbonSaved(habits), [habits]);
+  const percent = useMemo(() => Math.min(totalSaved / GOAL_G, 1), [totalSaved]);
+  const { next, progress, currentIndex } = useMemo(() => getLevel(points), [points]);
+  const benchmarkComparison = useMemo(() => getBenchmarkComparison(habits), [habits]);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <h1 className="sr-only">Dashboard</h1>
       {/* Top row: ring + streak */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {/* Carbon savings ring */}
@@ -96,7 +100,7 @@ export default function Dashboard() {
 
           {habits.length > 0 && (
             <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-lime-400/10 ring-1 ring-lime-400/30 text-lime-300 text-xs font-medium">
-              {getBenchmarkComparison(habits).percentReduction}% below the average commuter
+              {benchmarkComparison.percentReduction}% below the average commuter
             </div>
           )}
         </motion.section>

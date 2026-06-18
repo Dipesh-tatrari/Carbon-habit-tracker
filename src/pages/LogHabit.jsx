@@ -103,6 +103,7 @@ export default function LogHabit() {
                   type="button"
                   key={c.id}
                   onClick={() => handleCategoryChange(c.id)}
+                  aria-pressed={active}
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.97 }}
                   className={[
@@ -135,6 +136,7 @@ export default function LogHabit() {
                     type="button"
                     key={opt}
                     onClick={() => setType(opt)}
+                    aria-pressed={active}
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.97 }}
                     className={[

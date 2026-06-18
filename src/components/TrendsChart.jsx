@@ -8,12 +8,13 @@
  * point markers are hidden to avoid clutter.
  */
 
+import { useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { getDailyTrends } from "../utils/chartData";
 
 export default function TrendsChart({ habits, days = 7 }) {
-  const data = getDailyTrends(habits, days);
-  const hasData = data.some((d) => d.savedKg > 0);
+  const data = useMemo(() => getDailyTrends(habits, days), [habits, days]);
+  const hasData = useMemo(() => data.some((d) => d.savedKg > 0), [data]);
 
   if (!hasData) {
     return (

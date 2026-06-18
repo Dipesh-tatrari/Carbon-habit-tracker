@@ -9,7 +9,7 @@
  *   - Full badge grid (BadgeGrid) — locked and unlocked.
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Award, Flame, ListChecks, TrendingUp, CalendarDays } from "lucide-react";
 import { useHabitStore } from "../context/HabitContext";
@@ -32,8 +32,8 @@ const cardVariants = {
 
 export default function Insights() {
   const { habits, points, streak, unlockedBadges } = useHabitStore();
-  const totalSaved = getTotalCarbonSaved(habits);
-  const { current, next, progress } = getLevel(points);
+  const totalSaved = useMemo(() => getTotalCarbonSaved(habits), [habits]);
+  const { current, next, progress } = useMemo(() => getLevel(points), [points]);
   const [trendDays, setTrendDays] = useState(7);
 
   return (
@@ -196,13 +196,15 @@ export default function Insights() {
 const BADGE_COUNT = BADGES.length;
 
 function CategoryBreakdown({ habits }) {
-  const categories = ["transport", "food", "electricity"];
-  const totals = categories.map((cat) => ({
-    category: cat,
-    saved: habits.filter((h) => h.category === cat).reduce((sum, h) => sum + h.savedG, 0),
-  }));
+  const categories = useMemo(() => ["transport", "food", "electricity"], []);
+  const totals = useMemo(() => {
+    return categories.map((cat) => ({
+      category: cat,
+      saved: habits.filter((h) => h.category === cat).reduce((sum, h) => sum + h.savedG, 0),
+    }));
+  }, [habits, categories]);
 
-  const max = Math.max(...totals.map((t) => t.saved), 1);
+  const max = useMemo(() => Math.max(...totals.map((t) => t.saved), 1), [totals]);
 
   if (habits.length === 0) {
     return <p className="text-slate-400 text-sm">Log a few habits to see your breakdown here.</p>;

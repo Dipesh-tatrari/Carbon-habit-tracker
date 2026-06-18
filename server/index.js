@@ -23,10 +23,22 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import {fileURLToPath} from "url";
+import path from "path";
 
-dotenv.config({ path: new URL("./.env", import.meta.url).pathname });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables from .env file
+
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
+
+// Secure application with helmet headers
+app.use(helmet());
 
 // In production, FRONTEND_URL is set to the Render Static Site URL so only
 // your deployed frontend can call this server. In dev, allow everything.
@@ -34,9 +46,22 @@ const allowedOrigin = process.env.FRONTEND_URL || "*";
 
 app.use(cors({
   origin: allowedOrigin,
-  methods: ["POST"],
+  methods: ["POST", "GET"],
 }));
-app.use(express.json());
+app.use(express.json({ limit: "10kb" }));
+
+// Rate limit request to eco-tip endpoint to prevent abuse
+const tipLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: "Too many eco tips requested from this IP, please try again after 15 minutes."
+  }
+});
+
+app.use("/api/eco-tip", tipLimiter);
 
 const PORT = process.env.PORT || 3001;
 const GROQ_MODEL = "llama-3.1-8b-instant";
@@ -74,7 +99,11 @@ function buildPrompt(summary) {
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
 app.post("/api/eco-tip", async (req, res) => {
-  const summary = req.body?.summary || {};
+  if (!req.body || typeof req.body !== "object" || !req.body.summary) {
+    return res.status(400).json({ error: "Invalid request body: 'summary' is required." });
+  }
+
+  const summary = req.body.summary;
   const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
@@ -113,6 +142,10 @@ app.post("/api/eco-tip", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`AI proxy server running at http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log(`AI proxy server running at http://localhost:${PORT}`);
+  });
+}
+
+export default app;

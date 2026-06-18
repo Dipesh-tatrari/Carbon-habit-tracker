@@ -6,12 +6,13 @@
  * lock icon. Entrance animation staggers in by badge index.
  */
 
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
 import { BADGES } from "../utils/badges";
 
 export default function BadgeGrid({ unlockedBadges }) {
-  const unlocked = new Set(unlockedBadges);
+  const unlocked = useMemo(() => new Set(unlockedBadges), [unlockedBadges]);
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">

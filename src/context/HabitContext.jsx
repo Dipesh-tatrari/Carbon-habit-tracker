@@ -18,7 +18,7 @@
  * This file only manages state, persistence, and streak logic.
  */
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, useMemo } from "react";
 import { supabase } from "../utils/supabase";
 import { useAuth } from "./AuthContext";
 import { processHabitEntry } from "../utils/carbonLogic";
@@ -96,7 +96,10 @@ export function HabitProvider({ children }) {
   // -----------------------------------------------------------------
   // logHabit — insert a new habit + upsert stats in parallel.
   // -----------------------------------------------------------------
-  async function logHabit(category, type, value) {
+  // -----------------------------------------------------------------
+  // logHabit — insert a new habit + upsert stats in parallel.
+  // -----------------------------------------------------------------
+  const logHabit = useCallback(async (category, type, value) => {
     if (!user) return;
 
     const result = processHabitEntry(category, type, value);
@@ -160,12 +163,12 @@ export function HabitProvider({ children }) {
     setHabits((prev) =>
       prev.map((h) => (h.id === optimisticEntry.id ? real : h))
     );
-  }
+  }, [user, stats, habits]);
 
   // -----------------------------------------------------------------
   // removeHabit — delete one entry, recompute points.
   // -----------------------------------------------------------------
-  async function removeHabit(id) {
+  const removeHabit = useCallback(async (id) => {
     if (!user) return;
 
     const target = habits.find((h) => h.id === id);
@@ -183,12 +186,12 @@ export function HabitProvider({ children }) {
         .update({ total_points: newPoints })
         .eq("user_id", user.id),
     ]);
-  }
+  }, [user, habits, stats]);
 
   // -----------------------------------------------------------------
   // resetAll — wipe all rows for this user (useful for demo reset).
   // -----------------------------------------------------------------
-  async function resetAll() {
+  const resetAll = useCallback(async () => {
     if (!user) return;
     setHabits([]);
     setStats(DEFAULT_STATS);
@@ -196,28 +199,42 @@ export function HabitProvider({ children }) {
       supabase.from("habits").delete().eq("user_id", user.id),
       supabase.from("user_stats").delete().eq("user_id", user.id),
     ]);
-  }
+  }, [user]);
 
-  function clearRecentlyUnlocked() {
+  const clearRecentlyUnlocked = useCallback(() => {
     setRecentlyUnlocked([]);
-  }
+  }, []);
 
   const today = todayString();
 
-  const value = {
+  const todaysHabits = useMemo(() => {
+    return habits.filter((h) => h.date === today);
+  }, [habits, today]);
+
+  const value = useMemo(() => ({
     habits,
     points: stats.total_points,
     streak: stats.current_streak,
     lastActivityDate: stats.last_activity_date,
     unlockedBadges: stats.unlocked_badges,
     recentlyUnlocked,
-    todaysHabits: habits.filter((h) => h.date === today),
+    todaysHabits,
     dataLoading,
     logHabit,
     removeHabit,
     resetAll,
     clearRecentlyUnlocked,
-  };
+  }), [
+    habits,
+    stats,
+    recentlyUnlocked,
+    todaysHabits,
+    dataLoading,
+    logHabit,
+    removeHabit,
+    resetAll,
+    clearRecentlyUnlocked,
+  ]);
 
   return <HabitContext.Provider value={value}>{children}</HabitContext.Provider>;
 }

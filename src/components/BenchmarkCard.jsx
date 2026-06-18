@@ -8,12 +8,16 @@
  * percentage.
  */
 
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Gauge } from "lucide-react";
 import { getBenchmarkComparison, formatCarbon } from "../utils/carbonLogic";
 
 export default function BenchmarkCard({ habits }) {
-  const { totalImpactG, totalBaselineG, percentReduction } = getBenchmarkComparison(habits);
+  const { totalImpactG, totalBaselineG, percentReduction } = useMemo(
+    () => getBenchmarkComparison(habits),
+    [habits]
+  );
 
   if (habits.length === 0) {
     return (
