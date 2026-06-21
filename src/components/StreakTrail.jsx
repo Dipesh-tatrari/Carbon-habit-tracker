@@ -23,8 +23,19 @@ export default function StreakTrail({ habits }) {
   const loggedDates = new Set(habits.map((h) => h.date));
   const pathD = "M " + TRAIL_POINTS.map((p) => `${p.x},${p.y}`).join(" L ");
 
+  const srSummary = days
+    .map((d) => {
+      const completed = loggedDates.has(d.date);
+      return `${d.label}: ${completed ? "logged" : "no activity"}`;
+    })
+    .join(", ");
+
   return (
-    <svg viewBox="0 0 720 150" className="w-full h-auto" role="img" aria-label="7-day streak trail">
+    <div className="relative">
+      <span className="sr-only">
+        7-day streak trail details: {srSummary}
+      </span>
+      <svg viewBox="0 0 720 150" className="w-full h-auto" role="img" aria-label="7-day streak trail" aria-hidden="true">
       {/* faint contour lines for texture */}
       <path d={offsetPath(pathD, -16)} fill="none" stroke="#334155" strokeWidth="1" opacity="0.5" />
       <path d={offsetPath(pathD, 16)} fill="none" stroke="#334155" strokeWidth="1" opacity="0.5" />
@@ -77,7 +88,8 @@ export default function StreakTrail({ habits }) {
           </g>
         );
       })}
-    </svg>
+      </svg>
+    </div>
   );
 }
 

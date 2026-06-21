@@ -31,7 +31,12 @@ export default function CanopyVisual({ levelIndex }) {
 
   return (
     <div className="flex flex-col items-center">
-      <svg viewBox="0 0 400 210" className="w-full max-w-sm h-auto">
+      <svg 
+        viewBox="0 0 400 210" 
+        className="w-full max-w-sm h-auto"
+        role="img"
+        aria-label={`Visual canopy illustration growing with your level: current stage is ${levelInfo.name}`}
+      >
         {/* sky glow */}
         <defs>
           <radialGradient id="canopyGlow" cx="50%" cy="40%" r="60%">

@@ -30,7 +30,11 @@ export default function TrendsChart({ habits, days = 7 }) {
   const tickInterval = days > 14 ? Math.ceil(days / 8) : 0;
 
   return (
-    <div className="h-56 sm:h-64 -mx-2">
+    <div 
+      className="h-56 sm:h-64 -mx-2"
+      role="img"
+      aria-label={`CO₂ savings trend chart over the last ${days} days`}
+    >
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
           <defs>

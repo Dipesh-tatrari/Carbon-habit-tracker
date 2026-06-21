@@ -93,8 +93,12 @@ export default function LogHabit() {
       >
         {/* Category selector */}
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-3">Category</label>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <span className="block text-sm font-medium text-slate-300 mb-3">Category</span>
+          <div 
+            className="grid grid-cols-3 gap-2 sm:gap-3"
+            role="radiogroup"
+            aria-label="Habit Category"
+          >
             {CATEGORIES.map((c) => {
               const Icon = c.icon;
               const active = category === c.id;
@@ -103,7 +107,8 @@ export default function LogHabit() {
                   type="button"
                   key={c.id}
                   onClick={() => handleCategoryChange(c.id)}
-                  aria-pressed={active}
+                  role="radio"
+                  aria-checked={active}
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.97 }}
                   className={[
@@ -124,10 +129,14 @@ export default function LogHabit() {
         {/* Type selector (skipped for electricity) */}
         {activeCategory.options.length > 0 && (
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-3 capitalize">
+            <span className="block text-sm font-medium text-slate-300 mb-3 capitalize">
               {activeCategory.label} type
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+            </span>
+            <div 
+              className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3"
+              role="radiogroup"
+              aria-label={`${activeCategory.label} type`}
+            >
               {activeCategory.options.map((opt) => {
                 const Icon = habitIcon(category, opt);
                 const active = type === opt;
@@ -136,7 +145,8 @@ export default function LogHabit() {
                     type="button"
                     key={opt}
                     onClick={() => setType(opt)}
-                    aria-pressed={active}
+                    role="radio"
+                    aria-checked={active}
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.97 }}
                     className={[
@@ -192,6 +202,8 @@ export default function LogHabit() {
         {lastResult && (
           <motion.div
             key={logCount}
+            role="status"
+            aria-live="polite"
             initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8 }}

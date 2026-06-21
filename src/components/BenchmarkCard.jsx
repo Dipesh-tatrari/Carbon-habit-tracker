@@ -75,7 +75,14 @@ function BenchmarkBar({ label, valueG, widthPercent, colorClass, glow }) {
         <span className="text-slate-300 font-medium">{label}</span>
         <span className="font-mono text-slate-400">{formatCarbon(valueG)}</span>
       </div>
-      <div className="h-2.5 rounded-full bg-white/5 overflow-hidden ring-1 ring-white/10">
+      <div 
+        className="h-2.5 rounded-full bg-white/5 overflow-hidden ring-1 ring-white/10"
+        role="progressbar"
+        aria-valuenow={Math.round(widthPercent)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuetext={`${label}: ${formatCarbon(valueG)}`}
+      >
         <motion.div
           className={`h-full rounded-full ${colorClass}`}
           style={{ boxShadow: glow }}

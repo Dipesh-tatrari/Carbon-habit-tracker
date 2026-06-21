@@ -43,6 +43,7 @@ export default function Navbar() {
               key={to}
               to={to}
               end={to === "/"}
+              aria-label={label}
               className={({ isActive }) =>
                 [
                   "relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors",
@@ -80,11 +81,15 @@ export default function Navbar() {
               }
               transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
               className="flex items-center gap-1 px-2 py-1 rounded-lg bg-lime-400/10 ring-1 ring-lime-400/30 text-lime-300"
+              aria-label={`Current streak: ${streak} day${streak === 1 ? "" : "s"}`}
             >
               <Flame size={14} />
               {streak}
             </motion.div>
-            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-400/10 ring-1 ring-emerald-400/30 text-emerald-300">
+            <div 
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-400/10 ring-1 ring-emerald-400/30 text-emerald-300"
+              aria-label={`Total Eco-points: ${points}`}
+            >
               <Award size={14} />
               {points}
             </div>
@@ -102,6 +107,7 @@ export default function Navbar() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 title="Sign out"
+                aria-label="Sign out"
                 className="grid place-items-center w-8 h-8 rounded-xl bg-white/[0.03] ring-1 ring-white/10 text-slate-400 hover:text-white hover:ring-white/20 transition-colors"
               >
                 <LogOut size={14} />

@@ -65,7 +65,7 @@ export default function Dashboard() {
           </p>
 
           <div className="relative mt-4 w-48 h-48">
-            <svg viewBox="0 0 160 160" className="w-full h-full -rotate-90">
+            <svg viewBox="0 0 160 160" className="w-full h-full -rotate-90" aria-hidden="true">
               {/* track */}
               <circle cx="80" cy="80" r={RING_RADIUS} fill="none" stroke="#1e293b" strokeWidth="12" />
               {/* fill */}
@@ -179,7 +179,14 @@ export default function Dashboard() {
                 <span className="font-mono">{points} pts</span>
                 <span>{next.threshold} pts to {next.name} {next.icon}</span>
               </div>
-              <div className="h-2 rounded-full bg-white/5 overflow-hidden ring-1 ring-white/10">
+              <div 
+                className="h-2 rounded-full bg-white/5 overflow-hidden ring-1 ring-white/10"
+                role="progressbar"
+                aria-valuenow={Math.round(progress * 100)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuetext={`${points} points out of ${next.threshold} points needed for level ${next.name}`}
+              >
                 <motion.div
                   className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-lime-400"
                   style={{ boxShadow: "0 0 16px rgba(163, 230, 53, 0.55)" }}

@@ -12,6 +12,7 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { getHeatmapData } from "../utils/chartData";
+import { parseLocalDate } from "../utils/habitHelpers";
 
 const LEVEL_STYLES = [
   { fill: "rgba(255,255,255,0.05)" },
@@ -43,7 +44,7 @@ function splitWeekAtMonthBoundary(week) {
 
   for (let i = 0; i < week.length; i++) {
     if (!week[i]) continue;
-    const m = new Date(week[i].date + "T00:00:00").getMonth();
+    const m = parseLocalDate(week[i].date).getMonth();
     if (prevMonth !== null && m !== prevMonth) {
       splitIdx = i;
       break;
@@ -86,7 +87,7 @@ function buildMonthGroups(grid) {
     // Determine month of `before` slice
     const beforeReal = before.find((d) => d !== null);
     if (beforeReal) {
-      const m = new Date(beforeReal.date + "T00:00:00").getMonth();
+      const m = parseLocalDate(beforeReal.date).getMonth();
       pushToGroup(m, before);
     }
 
@@ -94,7 +95,7 @@ function buildMonthGroups(grid) {
     if (after.length > 0) {
       const afterReal = after.find((d) => d !== null);
       if (afterReal) {
-        const m = new Date(afterReal.date + "T00:00:00").getMonth();
+        const m = parseLocalDate(afterReal.date).getMonth();
         pushToGroup(m, after);
       }
     }
@@ -106,15 +107,20 @@ function buildMonthGroups(grid) {
 export default function CalendarHeatmap({ habits, weeks = 12 }) {
   const grid = useMemo(() => getHeatmapData(habits, weeks), [habits, weeks]);
   const [hovered, setHovered] = useState(null);
+  const [focusedDate, setFocusedDate] = useState(null);
 
   const groups = useMemo(() => buildMonthGroups(grid), [grid]);
 
   return (
     <div className="overflow-x-auto pb-1">
-      <div className="inline-flex flex-col min-w-max">
+      <div 
+        className="inline-flex flex-col min-w-max"
+        role="grid"
+        aria-label="Habit logging history calendar"
+      >
 
         {/* Grid: day labels + month groups */}
-        <div className="flex items-start">
+        <div className="flex items-start" role="row">
 
           {/* Day-of-week labels */}
           <div
@@ -181,9 +187,18 @@ export default function CalendarHeatmap({ habits, weeks = 12 }) {
                           ? "drop-shadow(0 0 5px rgba(74,222,128,0.85))"
                           : "none";
 
+                      const dayLabel = `${formatDate(day.date)}${day.isToday ? " (today)" : ""}: ${
+                        day.count === 0
+                          ? "no habits logged"
+                          : `${day.count} habit${day.count === 1 ? "" : "s"} logged, ${day.savedKg} kg CO₂ saved`
+                      }`;
+
                       return (
                         <motion.div
                           key={day.date}
+                          role="gridcell"
+                          tabIndex={0}
+                          aria-label={dayLabel}
                           initial={{ opacity: 0, scale: 0.4 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{
@@ -192,6 +207,14 @@ export default function CalendarHeatmap({ habits, weeks = 12 }) {
                           }}
                           onMouseEnter={() => setHovered(day)}
                           onMouseLeave={() => setHovered(null)}
+                          onFocus={() => {
+                            setHovered(day);
+                            setFocusedDate(day.date);
+                          }}
+                          onBlur={() => {
+                            setHovered(null);
+                            setFocusedDate(null);
+                          }}
                           style={{
                             width: CELL,
                             height: CELL,
@@ -199,10 +222,12 @@ export default function CalendarHeatmap({ habits, weeks = 12 }) {
                             filter: glowFilter,
                             borderRadius: 3,
                             cursor: "pointer",
-                            outline: day.isToday
+                            outline: focusedDate === day.date
+                              ? "2px solid #4ade80"
+                              : day.isToday
                               ? "2px solid rgba(255,255,255,0.9)"
                               : "1px solid rgba(255,255,255,0.07)",
-                            outlineOffset: day.isToday ? "1px" : "0px",
+                            outlineOffset: (focusedDate === day.date || day.isToday) ? "1px" : "0px",
                           }}
                         />
                       );
@@ -248,7 +273,7 @@ export default function CalendarHeatmap({ habits, weeks = 12 }) {
 }
 
 function formatDate(dateStr) {
-  const d = new Date(dateStr + "T00:00:00");
+  const d = parseLocalDate(dateStr);
   return d.toLocaleDateString("en-US", {
     month: "short", day: "numeric", year: "numeric",
   });

@@ -66,7 +66,14 @@ export default function Insights() {
               <span className="font-mono">{points} pts</span>
               <span>{next.threshold} pts to reach {next.name} {next.icon}</span>
             </div>
-            <div className="h-2.5 rounded-full bg-white/5 overflow-hidden ring-1 ring-white/10">
+            <div 
+              className="h-2.5 rounded-full bg-white/5 overflow-hidden ring-1 ring-white/10"
+              role="progressbar"
+              aria-valuenow={Math.round(progress * 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuetext={`${points} points out of ${next.threshold} points needed for level ${next.name}`}
+            >
               <motion.div
                 className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-lime-400"
                 style={{ boxShadow: "0 0 16px rgba(163, 230, 53, 0.55)" }}
@@ -103,6 +110,7 @@ export default function Insights() {
                 key={range}
                 type="button"
                 onClick={() => setTrendDays(range)}
+                aria-pressed={trendDays === range}
                 className={[
                   "px-3 py-1 rounded-lg text-xs font-medium transition-colors",
                   trendDays === range
@@ -223,7 +231,14 @@ function CategoryBreakdown({ habits }) {
               </span>
               <span className="font-mono text-slate-400">{formatCarbon(t.saved)}</span>
             </div>
-            <div className="h-2 rounded-full bg-white/5 overflow-hidden ring-1 ring-white/10">
+            <div 
+              className="h-2 rounded-full bg-white/5 overflow-hidden ring-1 ring-white/10"
+              role="progressbar"
+              aria-valuenow={Math.round((t.saved / max) * 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuetext={`${t.category} savings: ${formatCarbon(t.saved)}`}
+            >
               <motion.div
                 className="h-full rounded-full bg-lime-400"
                 style={{ boxShadow: "0 0 12px rgba(163, 230, 53, 0.6)" }}

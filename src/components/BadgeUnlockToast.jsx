@@ -45,6 +45,7 @@ export default function BadgeUnlockToast() {
         {current && (
           <motion.div
             key={current.id}
+            role="alert"
             initial={{ opacity: 0, y: 24, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.95 }}

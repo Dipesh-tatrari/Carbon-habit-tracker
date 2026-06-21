@@ -15,11 +15,11 @@ export default function BadgeGrid({ unlockedBadges }) {
   const unlocked = useMemo(() => new Set(unlockedBadges), [unlockedBadges]);
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+    <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
       {BADGES.map((badge, i) => {
         const isUnlocked = unlocked.has(badge.id);
         return (
-          <motion.div
+          <motion.li
             key={badge.id}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -37,18 +37,20 @@ export default function BadgeGrid({ unlockedBadges }) {
                 "grid place-items-center w-12 h-12 rounded-xl text-2xl",
                 isUnlocked ? "bg-emerald-400/10" : "bg-white/5",
               ].join(" ")}
+              aria-hidden="true"
             >
               {isUnlocked ? badge.icon : <Lock size={18} className="text-slate-500" />}
             </div>
             <p className={`text-sm font-semibold ${isUnlocked ? "text-white" : "text-slate-500"}`}>
+              <span className="sr-only">{isUnlocked ? "Unlocked badge" : "Locked badge"}: </span>
               {badge.name}
             </p>
             <p className={`text-xs ${isUnlocked ? "text-slate-400" : "text-slate-600"}`}>
               {badge.description}
             </p>
-          </motion.div>
+          </motion.li>
         );
       })}
-    </div>
+    </ul>
   );
 }

@@ -153,4 +153,31 @@ describe("carbonLogic.js helper functions", () => {
       expect(formatCarbon(-2500)).toBe("-2.50 kg");
     });
   });
+
+  describe("boundary conditions and edge cases", () => {
+    it("should handle negative quantities safely", () => {
+      // Impact can be negative mathematically, but saved CO2 must never be negative
+      expect(calculateImpact("transport", "car", -10)).toBe(-2500);
+      expect(calculateCarbonSaved("transport", "bus", -10)).toBe(0);
+    });
+
+    it("should handle null/undefined inputs gracefully", () => {
+      const resultNull = processHabitEntry("transport", "car", null);
+      expect(resultNull.value).toBe(0);
+      expect(resultNull.impactG).toBe(0);
+      expect(resultNull.savedG).toBe(0);
+
+      const resultUndefined = processHabitEntry("transport", "car", undefined);
+      expect(resultUndefined.value).toBe(0);
+      expect(resultUndefined.impactG).toBe(0);
+      expect(resultUndefined.savedG).toBe(0);
+    });
+
+    it("should handle extremely large values without overflow issues", () => {
+      const largeVal = 1000000;
+      expect(calculateImpact("transport", "car", largeVal)).toBe(250000000);
+      expect(calculateCarbonSaved("transport", "bus", largeVal)).toBe(200000000);
+      expect(calculatePoints(200000000)).toBe(4000000);
+    });
+  });
 });

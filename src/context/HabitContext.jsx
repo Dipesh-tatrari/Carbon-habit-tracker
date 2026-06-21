@@ -23,6 +23,7 @@ import { supabase } from "../utils/supabase";
 import { useAuth } from "./AuthContext";
 import { processHabitEntry } from "../utils/carbonLogic";
 import { checkNewBadges } from "../utils/badges";
+import { todayString, nextStreak } from "../utils/habitHelpers";
 
 const HabitContext = createContext(null);
 
@@ -93,9 +94,6 @@ export function HabitProvider({ children }) {
     loadUserData();
   }, [loadUserData]);
 
-  // -----------------------------------------------------------------
-  // logHabit — insert a new habit + upsert stats in parallel.
-  // -----------------------------------------------------------------
   // -----------------------------------------------------------------
   // logHabit — insert a new habit + upsert stats in parallel.
   // -----------------------------------------------------------------
@@ -264,22 +262,4 @@ function dbRowToEntry(row) {
   };
 }
 
-/** Rules:
- *  - No prior date  -> streak = 1
- *  - Already logged today -> unchanged
- *  - Last log was yesterday -> streak + 1
- *  - Bigger gap -> reset to 1
- */
-function nextStreak(lastDate, currentStreak, today) {
-  if (!lastDate) return 1;
-  if (lastDate === today) return currentStreak;
-
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yStr = yesterday.toISOString().slice(0, 10);
-  return lastDate === yStr ? currentStreak + 1 : 1;
-}
-
-function todayString() {
-  return new Date().toISOString().slice(0, 10);
-}
+// Private helper functions were refactored and moved to src/utils/habitHelpers.js for purity and unit testing.

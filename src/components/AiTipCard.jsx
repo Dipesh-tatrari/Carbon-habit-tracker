@@ -19,34 +19,38 @@ export default function AiTipCard({ loading, tip }) {
       className="glass rounded-3xl p-6 sm:p-8 shadow-glow"
     >
       <p className="flex items-center gap-2 text-sm font-medium text-emerald-300 uppercase tracking-wide mb-3">
-        <Bot size={16} />
+        <Bot size={16} aria-hidden="true" />
         Your AI eco tip
       </p>
 
-      <AnimatePresence mode="wait">
-        {loading ? (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-2"
-          >
-            <SkeletonLine width="100%" />
-            <SkeletonLine width="80%" />
-          </motion.div>
-        ) : (
-          <motion.p
-            key="tip"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25 }}
-            className="text-slate-200 leading-relaxed"
-          >
-            {tip}
-          </motion.p>
-        )}
-      </AnimatePresence>
+      <div role="status" aria-live="polite">
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-2"
+              aria-busy="true"
+              aria-label="AI eco tip is loading"
+            >
+              <SkeletonLine width="100%" />
+              <SkeletonLine width="80%" />
+            </motion.div>
+          ) : (
+            <motion.p
+              key="tip"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25 }}
+              className="text-slate-200 leading-relaxed"
+            >
+              {tip}
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.div>
   );
 }
